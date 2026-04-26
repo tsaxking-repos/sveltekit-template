@@ -19,11 +19,26 @@ jobs:
   unit-tests:
     env:
       PUPPETEER_SKIP_DOWNLOAD: true
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Install node v24.13.1
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24.13.1
+        
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.0
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
 
       - name: Install dependencies
         run: |
