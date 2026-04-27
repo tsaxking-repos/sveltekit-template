@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   docker-compose-tests:
@@ -35,6 +36,28 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 10.30.0
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Restore Docker layer cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.ref_name }}-${{ hashFiles('Dockerfile', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ github.ref_name }}-
+            ${{ runner.os }}-buildx-
 
       - name: Install Chrome
         run: |
@@ -76,10 +99,24 @@ jobs:
       - name: Build app
         run: pnpm build
 
+      - name: Prepare Docker env
+        run: cp .env .docker.env
+
       - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          tags: my-app:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Move Docker layer cache
+        if: always()
         run: |
-          cp .env .docker.env
-          docker build -t my-app:latest .
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Debug Docker images
         run: |
