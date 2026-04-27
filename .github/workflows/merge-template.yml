@@ -41,7 +41,7 @@ jobs:
     uses: ./.github/workflows/docker-compose-test.yml
 
   merge-template:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
     needs: [format, unit-tests, E2E, check, docker-compose]
 
     strategy:
@@ -58,7 +58,7 @@ jobs:
             git@github.com:lordbagel42/better-fundraising.git,
             git@github.com:Ansodo-SophieH/tracker-app.git,
             git@github.com:tsaxking/tsaxking-com.git,
-            git@github.com:tsaxking/audio-flow.git
+            git@github.com:tsaxking-repos/audio-flow.git
           ]
 
     steps:
@@ -86,7 +86,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pnpm add -D typescript
+          pnpm add -D typescript@5.9.3
           pnpm install --frozen-lockfile
 
       - name: Load .env variables
