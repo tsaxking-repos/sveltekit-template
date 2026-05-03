@@ -146,10 +146,9 @@ describe('WritableBase', () => {
 		expect(storeA.equals(storeC)).toBe(false);
 	});
 
-	test('Await functionality', async () => {
+	test('Async functionality', async () => {
 		const store = new WritableBase(0);
-		const promise = store.await().unwrap();
-
+		const promise = store.unwrap();
 		store.set(42);
 		const result = await promise;
 		expect(result).toBe(42);

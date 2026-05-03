@@ -8,6 +8,7 @@
 import type { Subscriber, Unsubscriber, Writable } from 'svelte/store';
 import { attempt, attemptAsync, debounce, ComplexEventEmitter, ResultPromise } from 'ts-utils';
 import deepEqual from 'fast-deep-equal';
+import { Ok, Err } from 'ts-utils';
 
 /**
  * Base writable store implementation with debounced updates and lifecycle management.
@@ -19,7 +20,11 @@ import deepEqual from 'fast-deep-equal';
  * @template T - The type of data stored in this writable
  * @implements {Writable<T>}
  */
-export class WritableBase<T> implements Writable<T> {
+export class WritableBase<T> extends ResultPromise<T> implements Writable<T> {
+	static get [Symbol.species](): PromiseConstructor {
+		return Promise;
+	}
+
 	private readonly em = new ComplexEventEmitter<{
 		'all-unsubscribe': void;
 		subscribe: [Subscriber<T>];
@@ -47,8 +52,21 @@ export class WritableBase<T> implements Writable<T> {
 			debounceMs?: number;
 			debug?: boolean;
 			informType?: 'immediate' | 'debounced';
+			timeoutMs?: number;
 		}
 	) {
+		super((resolve) => {
+			setTimeout(() => { // used because "this" is not available in the super constructor, so we have to delay the subscribeOnce call
+				const unsub = this.subscribeOnceInternal((value) => {
+					clearTimeout(timeout);
+					resolve(new Ok(value));
+				});
+				const timeout = setTimeout(() => {
+					unsub();
+					resolve(new Err(new Error('Timeout exceeded before next update')));
+				}, this._config?.timeoutMs ?? 10 * 1000);
+			}, _config?.debounceMs ?? 0);
+		});
 		this._informDebounced = debounce(() => {
 			this._informImmediate();
 		}, this._config?.debounceMs ?? 0);
@@ -90,6 +108,7 @@ export class WritableBase<T> implements Writable<T> {
 	 * @type {Set<Subscriber<T>>}
 	 */
 	subscribers = new Set<Subscriber<T>>();
+	private readonly internalSubscribers = new Set<Subscriber<T>>();
 
 	/**
 	 * Subscribes to changes in this writable store (Svelte store interface)
@@ -146,6 +165,18 @@ export class WritableBase<T> implements Writable<T> {
 		};
 	}
 
+	private subscribeOnceInternal(run: Subscriber<T>): Unsubscriber {
+		const wrapper: Subscriber<T> = (value) => {
+			run(value);
+			this.internalSubscribers.delete(wrapper);
+		};
+
+		this.internalSubscribers.add(wrapper);
+		return () => {
+			this.internalSubscribers.delete(wrapper);
+		};
+	}
+
 	/**
 	 * Immediately notifies all subscribers of the current data
 	 *
@@ -154,6 +185,9 @@ export class WritableBase<T> implements Writable<T> {
 	 */
 	_informImmediate() {
 		for (const subscriber of this.subscribers) {
+			subscriber(this.data);
+		}
+		for (const subscriber of this.internalSubscribers) {
 			subscriber(this.data);
 		}
 	}
@@ -223,10 +257,9 @@ export class WritableBase<T> implements Writable<T> {
 	 * @param {Writable<unknown>} target - The writable store to pipe from
 	 */
 	pipe(target: Writable<unknown>): void {
-		this.on(
-			'all-unsubscribe',
-			target.subscribe(() => this.inform())
-		);
+		const unsubscribe = target.subscribe(() => this.inform());
+		this.once('all-unsubscribe', unsubscribe);
+		this.once('destroy', unsubscribe);
 	}
 
 	/**
@@ -244,12 +277,11 @@ export class WritableBase<T> implements Writable<T> {
 	 * ```
 	 */
 	pipeData<Target>(target: Writable<Target>, transform: (data: Target) => T): void {
-		this.on(
-			'all-unsubscribe',
-			target.subscribe(async (data) => {
-				this.data = transform(data);
-			})
-		);
+		const unsubscribe = target.subscribe((data) => {
+			this.data = transform(data);
+		});
+		this.once('all-unsubscribe', unsubscribe);
+		this.once('destroy', unsubscribe);
 	}
 
 	/**
@@ -269,33 +301,11 @@ export class WritableBase<T> implements Writable<T> {
 	 * ```
 	 */
 	pipeDataAsync<Target>(target: Writable<Target>, transform: (data: Target) => Promise<T>) {
-		this.on(
-			'all-unsubscribe',
-			target.subscribe(async (data) => {
-				this.data = await transform(data);
-			})
-		);
-	}
-
-	/**
-	 * Awaits the next update to the writable, with an optional timeout to prevent hanging indefinitely. This will default to a 10 second timeout if not specified.
-	 * @param timeout - Maximum time to wait in milliseconds (default: 10 seconds)
-	 * @returns {ResultPromise<T>} ResultPromise that resolves with the next data value or rejects on timeout
-	 */
-	await(timeout = 10 * 1000): ResultPromise<T> {
-		return attemptAsync<T>(async () => {
-			return new Promise<T>((resolve, reject) => {
-				const unsub = this.subscribeOnce((data) => {
-					resolve(data);
-					unsub();
-					clearTimeout(t);
-				});
-				const t = setTimeout(() => {
-					reject(new Error('WritableBase.await timed out'));
-					unsub();
-				}, timeout);
-			});
+		const unsubscribe = target.subscribe(async (data) => {
+			this.data = await transform(data);
 		});
+		this.once('all-unsubscribe', unsubscribe);
+		this.once('destroy', unsubscribe);
 	}
 
 	private readonly interceptors = new Set<(value: T) => T>();
@@ -350,6 +360,7 @@ export class WritableBase<T> implements Writable<T> {
 	 */
 	destroy() {
 		this.subscribers.clear();
+		this.internalSubscribers.clear();
 		this.emit('destroy');
 		this.interceptors.clear();
 		this.validators.clear();

@@ -23,7 +23,6 @@ describe('CRUD Tests', () => {
 				name: 'CRUD Test',
 				age
 			})
-			.await()
 			.unwrap();
 		if (created.pending) throw new Error('Creation is pending');
 		if ('error' in created) throw new Error('Creation failed: ' + created.error.message);
@@ -39,12 +38,11 @@ describe('CRUD Tests', () => {
 				...data,
 				age: age + 1
 			}))
-			.await()
 			.unwrap();
 		if (updated.pending) throw new Error('Update is pending');
 		if ('error' in updated) throw new Error('Update failed: ' + updated.error.message);
 
-		const deleted = await data.delete().await().unwrap();
+		const deleted = await data.delete().unwrap();
 		if (deleted.pending) throw new Error('Delete is pending');
 		if ('error' in deleted) throw new Error('Delete failed: ' + deleted.error.message);
 	}, 30000);
