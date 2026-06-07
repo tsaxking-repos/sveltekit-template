@@ -23,7 +23,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 					event.cookies.set(cookie.name, cookie.value, cookie.options);
 					// terminal.debug(`Set cookie: ${cookie.name}=${cookie.value}`);
 				}
-			}
+			},
+		},
+		auth: {
+			flowType: 'pkce',
 		}
 	});
 	const SessionStruct = SupaStruct.get({

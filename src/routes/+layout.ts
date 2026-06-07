@@ -11,14 +11,35 @@ export const load = async (event) => {
 				global: {
 					fetch: event.fetch
 				},
+				auth: {
+					flowType: 'pkce',
+				},
+				cookies: {
+					getAll: () => {
+						const cookies = document.cookie.split('; ').map(cookieStr => {
+							const [name, ...rest] = cookieStr.split('=');
+							return { name, value: rest.join('=') };
+						});
+						return cookies;
+					},
+					setAll: (cookies) => {
+						for (const cookie of cookies) {
+							document.cookie = `${cookie.name}=${cookie.value}; path=/;`;
+							// terminal.debug(`Set cookie: ${cookie.name}=${cookie.value}`);
+						}
+					}
+				}
 			})
 		: createServerClient(__APP_ENV__.supabase.url, __APP_ENV__.supabase.public_key, {
 				global: {
 					fetch: event.fetch
 				},
 				cookies: {
-					getAll: () => event.data.cookies || []
+					getAll: () => event.data.cookies,
 				},
+				auth: {
+					flowType: 'pkce',
+				}
 			});
 
 	const {

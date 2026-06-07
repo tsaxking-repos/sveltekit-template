@@ -66,13 +66,37 @@ export default {
 	SMTP_PASS: str('SMTP_PASS', true, 'SMTP password for sending emails'),
 	SMTP_ADMIN_EMAIL: str('SMTP_ADMIN_EMAIL', true, 'Admin email to receive notifications'),
 
-	OAUTH2_PROVIDER: str('OAUTH2_PROVIDER', true, 'OAuth2 provider for authentication'),
-	OAUTH2_CLIENT_ID: str('OAUTH2_CLIENT_ID', true, 'OAuth2 client ID for authentication'),
-	OAUTH2_CLIENT_SECRET: str(
-		'OAUTH2_CLIENT_SECRET',
+	OAUTH2_GOOGLE_ENABLED: bool(
+		'OAUTH2_GOOGLE_ENABLED',
 		true,
-		'OAuth2 client secret for authentication'
+		'Whether to enable Google OAuth2 authentication'
 	),
+	OAUTH2_GOOGLE_CLIENT_ID: str(
+		'OAUTH2_GOOGLE_CLIENT_ID',
+		true,
+		'Google OAuth2 Client ID for testing Google authentication'
+	),
+	OAUTH2_GOOGLE_CLIENT_SECRET: str(
+		'OAUTH2_GOOGLE_CLIENT_SECRET',
+		true,
+		'Google OAuth2 Client Secret for testing Google authentication'
+	),
+	OAUTH2_GITHUB_ENABLED: bool(
+		'OAUTH2_GITHUB_ENABLED',
+		true,
+		'Whether to enable GitHub OAuth2 authentication'
+	),
+	OAUTH2_GITHUB_CLIENT_ID: str(
+		'OAUTH2_GITHUB_CLIENT_ID',
+		true,
+		'GitHub OAuth2 Client ID for testing GitHub authentication'
+	),
+	OAUTH2_GITHUB_CLIENT_SECRET: str(
+		'OAUTH2_GITHUB_CLIENT_SECRET',
+		true,
+		'GitHub OAuth2 Client Secret for testing GitHub authentication'
+	),
+
 
 	FINGERPRINT_SECRET: str(
 		'FINGERPRINT_SECRET',

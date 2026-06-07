@@ -7,10 +7,11 @@ Sign-in page at `/account/sign-in`.
 	import Password from '$lib/components/forms/Password.svelte';
 	import { Form } from '$lib/utils/form.svelte.js';
 	import { goto } from '$app/navigation';
-	import supabase from '$lib/services/supabase/index.js';
 	import { alert } from '$lib/utils/prompts.js';
 
-	const { form } = $props();
+	const { form, data } = $props();
+
+	const supabase = $derived(data.supabase);
 
 	$effect(() => {
 		if (form?.redirect) {
@@ -57,7 +58,7 @@ Sign-in page at `/account/sign-in`.
 			</h1>
 		</div>
 		<div class="row mb-3">
-		<div class="d-">
+		<div class="d-flex gap-2">
 			
 			<a href="/account/sign-up" class="btn btn-primary pb-3">Sign Up</a>
 			<button class="btn btn-secondary" onclick={requestPasswordReset}>
@@ -106,15 +107,13 @@ Sign-in page at `/account/sign-in`.
 			</div>
 		{/if}
 		<div class="row mb-3">
-			<!-- <div class="col">
+			<div class="d-flex gap-2">
+
 				<button
-					class="gsi-material-button"
-					onclick={() => {
-						supabase.auth.signInWithOAuth({
+					class="gsi-material-button btn btn-secondary"
+					onclick={async () => {
+						await supabase.auth.signInWithOAuth({
 							provider: 'google',
-							options: {
-								redirectTo: `${window.location.origin}/api/oauth/sign-in`
-							}
 						});
 					}}
 				>
@@ -151,7 +150,17 @@ Sign-in page at `/account/sign-in`.
 						<span style="display: none;">Sign in with Google</span>
 					</div>
 				</button>
-			</div> -->
+
+				<!-- Github -->
+				 <button type="button" class="btn btn-secondary" onclick={async () => {
+						await supabase.auth.signInWithOAuth({
+							provider: 'github',
+						});
+				 }}>
+				 	<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" width="24" height="24" />
+						Sign in with GitHub
+				 </button>
+			</div>
 		</div>
 	</div>
 </main>
