@@ -77,9 +77,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		client: supabase
 	});
 
-	const cookie = event.cookies.get('ssid');
-	SESSION: if (cookie) {
-		const sessionRes = await SessionStruct.get({ id: cookie }).first();
+	let session_id = event.cookies.get('ssid');
+	const include = include_in_session(event.url.pathname);
+	SESSION: if (session_id) {
+		const sessionRes = await SessionStruct.get({ id: session_id }).first();
 		// console.log('Session Result: ', sessionRes);
 		if (sessionRes.isErr()) {
 			// terminal.error('Error getting session from cookie:', sessionRes.error);
@@ -96,6 +97,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				terminal.error('Error creating new session:', res.error);
 			} else {
 				event.locals.session = res.value[0];
+				session_id = res.value[0].raw.id;
 				event.cookies.set('ssid', res.value[0].raw.id, {
 					httpOnly: true,
 					path: '/'
@@ -105,7 +107,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (sessionRes.isOk() && sessionRes.value) {
 			// console.log('Session found:', sessionRes.value);
 			event.locals.session = sessionRes.value;
-			const include = include_in_session(event.url.pathname);
 			if (include) {
 				// console.log('Updating session with prev_url:', event.url.pathname);
 				// don't await so it's non-blocking'
@@ -121,7 +122,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 			}
 		}
 	} else {
-		const include = include_in_session(event.url.pathname);
 		// console.log('No session cookie found, creating new session. Include in session:', include);
 		if (!include) break SESSION; // don't create a new session if the page is ignored. This is to prevent bots from creating sessions for every page they visit.
 		const res = await SessionStruct.new({
@@ -132,12 +132,42 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (res.isErr()) {
 			terminal.error('Error creating new session:', res.error);
 		} else {
+			session_id = res.value[0].raw.id;
 			event.locals.session = res.value[0];
 			event.cookies.set('ssid', res.value[0].raw.id, {
 				httpOnly: true,
 				path: '/'
 			});
 		}
+	}
+
+	if (session_id) {
+		const Tab = SupaStruct.get({
+			client: supabase,
+			schema: 'core',
+			table: 'session_tab',
+		});
+
+		const tab_id = event.cookies.get('tab-id');
+		if (tab_id) {
+			const upsert = await Tab.upsert(
+				[
+					{
+						id: tab_id,
+						url: event.url.pathname,
+						session_id: session_id,
+					}
+				]
+			);
+
+			if (upsert.isErr()) {
+				terminal.error('Error upserting tab:', upsert.error);
+			} else {
+				const [tab] = upsert.value;
+				event.locals.tab = tab;
+			}
+		}
+
 	}
 
 	try {

@@ -10,9 +10,7 @@ export const load = async (event) => {
 		return {
 			user: null,
 			cookies: event.cookies.getAll(),
-			is_mentor: false,
-			is_student: false,
-			is_viewer: false
+			is_admin: false,
 		};
 	}
 
@@ -26,27 +24,16 @@ export const load = async (event) => {
 		table: 'profile'
 	});
 
-	const [is_mentor, is_student, is_viewer, profile] = await Promise.all([
-		hasRole(event.locals.supabase, 'Mentor'),
-		hasRole(event.locals.supabase, 'Student'),
-		hasRole(event.locals.supabase, 'Viewer'),
+	const [is_admin, profile] = await Promise.all([
+		hasRole(event.locals.supabase, 'Admin'),
 		ProfileStruct.get({ id: userData.user.id }).first()
 	]);
 
-	if (is_mentor.isErr()) {
-		terminal.error('Error checking mentor role:', is_mentor.error);
+	if (is_admin.isErr()) {
+		terminal.error('Error checking admin role:', is_admin.error);
 		throw error(500, 'Internal Server Error');
 	}
 
-	if (is_student.isErr()) {
-		terminal.error('Error checking student role:', is_student.error);
-		throw error(500, 'Internal Server Error');
-	}
-
-	if (is_viewer.isErr()) {
-		terminal.error('Error checking viewer role:', is_viewer.error);
-		throw error(500, 'Internal Server Error');
-	}
 
 	if (profile.isErr()) {
 		terminal.error('Error getting profile:', profile.error);
@@ -56,9 +43,7 @@ export const load = async (event) => {
 	return {
 		user: userData?.user || null,
 		cookies: event.cookies.getAll(),
-		is_mentor: is_mentor.value,
-		is_student: is_student.value,
-		is_viewer: is_viewer.value,
+		is_admin: is_admin.value,
 		profile: profile.value?.raw || null
 	};
 };

@@ -12,6 +12,7 @@ declare global {
 			start: number;
 			supabase: ReturnType<typeof createServerClient<DB>> & { serviceRole: boolean };
 			session: SupaStructData<'core', 'session'> | null;
+			tab: SupaStructData<'core', 'session_tab'> | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

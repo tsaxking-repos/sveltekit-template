@@ -40,6 +40,11 @@ export const schemas = {
       Row: z.object({ "account_id": z.string().nullable(), "archived": z.boolean(), "created_at": z.string(), "id": z.string(), "prev_url": z.string().nullable() }),
       Insert: z.object({ "account_id": z.string().nullable().optional(), "archived": z.boolean().optional(), "created_at": z.string().optional(), "id": z.string().optional(), "prev_url": z.string().nullable().optional() }),
       Update: z.object({ "account_id": z.string().nullable().optional(), "archived": z.boolean().optional(), "created_at": z.string().optional(), "id": z.string().optional(), "prev_url": z.string().nullable().optional() }),
+    },
+    "session_tab": {
+      Row: z.object({ "archived": z.boolean(), "created_at": z.string(), "id": z.string(), "session_id": z.string(), "url": z.string() }),
+      Insert: z.object({ "archived": z.boolean().optional(), "created_at": z.string().optional(), "id": z.string().optional(), "session_id": z.string(), "url": z.string() }),
+      Update: z.object({ "archived": z.boolean().optional(), "created_at": z.string().optional(), "id": z.string().optional(), "session_id": z.string().optional(), "url": z.string().optional() }),
     }
   },
   "public": {

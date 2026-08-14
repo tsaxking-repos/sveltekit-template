@@ -10,6 +10,10 @@ fingerprint();
 
 export const ogFetch = (() => {
 	if (!browser) return fetch;
+
+	const tab_id = window.sessionStorage.getItem('tab-id') ?? crypto.randomUUID();
+	window.sessionStorage.setItem('tab-id', tab_id);
+
 	const og = window.fetch;
 	window.fetch = (url: URL | RequestInfo, config?: RequestInit) => {
 		const headers = new Headers(config?.headers);
@@ -17,6 +21,7 @@ export const ogFetch = (() => {
 		for (const [k, v] of Object.entries(Requests.metadata)) {
 			headers.set(`X-${k}`, v as string);
 		}
+		headers.set('X-Tab-Id', tab_id);
 
 		return og(url, {
 			...config,

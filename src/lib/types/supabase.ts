@@ -215,6 +215,38 @@ export type Database = {
         }
         Relationships: []
       }
+      session_tab: {
+        Row: {
+          archived: boolean
+          created_at: string
+          id: string
+          session_id: string
+          url: string
+        }
+        Insert: {
+          archived?: boolean
+          created_at?: string
+          id?: string
+          session_id: string
+          url: string
+        }
+        Update: {
+          archived?: boolean
+          created_at?: string
+          id?: string
+          session_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_tab_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "session"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -504,6 +536,13 @@ export type DatabasePivoted = {
 				"id": string;
 				"prev_url": string | null;
 			};
+			"session_tab": {
+				"archived": boolean;
+				"created_at": string;
+				"id": string;
+				"session_id": string;
+				"url": string;
+			};
 		};
 		"public": {
 			"_template": {
@@ -582,6 +621,13 @@ export type DatabasePivoted = {
 				"created_at"?: string;
 				"id"?: string;
 				"prev_url"?: string | null;
+			};
+			"session_tab": {
+				"archived"?: boolean;
+				"created_at"?: string;
+				"id"?: string;
+				"session_id": string;
+				"url": string;
 			};
 		};
 		"public": {
@@ -662,6 +708,13 @@ export type DatabasePivoted = {
 				"id"?: string;
 				"prev_url"?: string | null;
 			};
+			"session_tab": {
+				"archived"?: boolean;
+				"created_at"?: string;
+				"id"?: string;
+				"session_id"?: string;
+				"url"?: string;
+			};
 		};
 		"public": {
 			"_template": {
@@ -689,6 +742,7 @@ export type DatabasePivoted = {
 			"role": Database["core"]['Tables']["role"]['Relationships'];
 			"role_account": Database["core"]['Tables']["role_account"]['Relationships'];
 			"session": Database["core"]['Tables']["session"]['Relationships'];
+			"session_tab": Database["core"]['Tables']["session_tab"]['Relationships'];
 		};
 		"public": {
 			"_template": Database["public"]['Tables']["_template"]['Relationships'];
