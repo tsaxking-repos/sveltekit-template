@@ -10,7 +10,7 @@ COPY package.json pnpm-lock.yaml ./
 COPY ./config ./config
 
 RUN pnpm config set --global allowBuilds true
-
+RUN pnpm config list
 RUN pnpm install --frozen-lockfile
 
 COPY . .
