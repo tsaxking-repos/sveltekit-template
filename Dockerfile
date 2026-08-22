@@ -16,6 +16,8 @@ COPY . .
 # This is for type checking, we are not baking .env into the system
 COPY ./.env.example .env 
 
+RUN pnpm install --frozen-lockfile
+
 RUN pnpm --filter ts-utils build
 
 EXPOSE 3000
