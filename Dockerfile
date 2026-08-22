@@ -18,8 +18,5 @@ COPY ./.env.example .env
 
 RUN pnpm --filter ts-utils build
 
-# Remove .env
-RUN rm -f .env
-
 EXPOSE 3000
 CMD ["pnpm", "start"]
