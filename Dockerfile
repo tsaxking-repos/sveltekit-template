@@ -18,7 +18,7 @@ COPY ./.env.example .env # This is for type checking
 
 RUN pnpm --filter ts-utils build
 
-RUN pnpm build
+# RUN pnpm build
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
