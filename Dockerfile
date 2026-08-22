@@ -1,11 +1,8 @@
 FROM node:24.13.1-alpine
 
+RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN apk add --no-cache git
-
-RUN corepack enable && \
-    corepack prepare pnpm@10.30.0 --activate
-
-RUN npm install -g typescript@5.9.3
+RUN npm install -g typescript@latest
 
 WORKDIR /app
 
@@ -17,8 +14,9 @@ RUN pnpm config set --global allowBuilds true
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+# This is for type checking, we are not baking .env into the system
+COPY ./.env.example .env 
 
-RUN cp .env.example .env
 
 RUN pnpm --filter ts-utils build
 
