@@ -24,13 +24,25 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.30.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.13.1
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Load .env variables
         run: |
           cp .env.example .env
           echo "Loaded .env variables"
+
       - name: Install dependencies
         run: |
           echo "Installing dependencies..."
