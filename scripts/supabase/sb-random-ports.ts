@@ -16,12 +16,10 @@ export default () => {
 	for (const file of files) {
 		let content = fs.readFileSync(file, 'utf-8');
 		console.log(`Updating ports in ${file} by adding ${add}...`);
-		console.log('Current:', content);
 		for (const port of range(54320, 54340)) {
 			const newPort = port + add;
 			content = content.replaceAll(port.toString(), newPort.toString());
 		}
-		console.log('Updated:', content);
 		fs.writeFileSync(file, content);
 	}
 };
