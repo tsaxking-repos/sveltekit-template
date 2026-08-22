@@ -13,12 +13,13 @@ RUN pnpm config set --global allowBuilds true
 
 # Assume all necessary dependencies are installed
 COPY . .
-COPY ./.env.example .env # This is for type checking
-
+# This is for type checking, we are not baking .env into the system
+COPY ./.env.example .env 
 
 RUN pnpm --filter ts-utils build
 
-# RUN pnpm build
+# Remove .env
+RUN rm -f .env
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
