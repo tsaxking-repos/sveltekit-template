@@ -30,7 +30,6 @@ jobs:
       - name: Install dependencies
         run: |
           echo "Installing dependencies..."
-          pnpm add -D typescript@5.9.3
           pnpm install --frozen-lockfile
 
       - name: Load .env variables
@@ -63,12 +62,20 @@ jobs:
           echo "Testing..."
           pnpm run check
 
-      - name: Shutdown supabase
+      - name: Shutdown Supabase
         if: always()
         run: |
           pnpm sb:stop --no-backup || true
-          docker rm -f $(docker ps -aq --filter "name=supabase-${SCHEMA_NAME}") || true
+
+      - name: Remove leftover Supabase containers
+        if: always()
+        run: |
+          containers="$(docker ps -aq --filter "name=supabase-${SCHEMA_NAME}")"
+          if [ -n "$containers" ]; then
+            docker rm -f $containers
+          fi
 
       - name: Clean up Supabase config
         if: always()
-        run: rm -f .env
+        run: |
+          rm -f .env

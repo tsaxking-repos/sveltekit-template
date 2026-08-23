@@ -185,5 +185,21 @@
 		"vite-node": "^3.2.4",
 		"yaml": "^2.8.0",
 		"zod": "^3.25.76"
+	},
+	"pnpm": {
+		"overrides": {
+			"esbuild": "0.21.5"
+		},
+		"onlyBuiltDependencies": [
+			"@parcel/watcher",
+			"colors",
+			"drizzle-struct",
+			"esbuild",
+			"html-constructor",
+			"math",
+			"msgpackr-extract",
+			"puppeteer",
+			"ts-utils"
+		]
 	}
 }
