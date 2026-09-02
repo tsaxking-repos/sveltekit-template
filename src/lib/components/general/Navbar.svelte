@@ -30,7 +30,7 @@ Top navigation bar with stack controls, theme toggle, account menu, and notifica
 	let notifs = $state(0);
 </script>
 
-<nav class="navbar navbar-expand-lg layer-2">
+<nav class="navbar navbar-expand-lg layer-1">
 	<div class="d-flex justify-content-between w-100">
 		<div class="start d-flex align-items-center">
 			{#if Navbar.getSections().length}
@@ -108,7 +108,7 @@ Top navigation bar with stack controls, theme toggle, account menu, and notifica
 		</div>
 	</div>
 </nav>
-<SideNav id="pages" />
+<SideNav id="pages" name={title} />
 
 {#if account}
 	<Notifications {notifications} />

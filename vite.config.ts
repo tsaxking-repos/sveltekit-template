@@ -2,19 +2,12 @@
 import { mdsvex } from 'mdsvex';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
-// import { playwright } from '@vitest/browser-playwright';
 import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
-// import path from 'node:path';
-// import { fileURLToPath } from 'node:url';
-// import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { email } from '@svelte-plugin/email/vite';
-import env from './src/lib/server/utils/env.ts';
+import { config } from 'dotenv';
 
-// const dirname =
-// 	typeof import.meta.dirname !== 'undefined'
-// 		? import.meta.dirname
-// 		: path.dirname(fileURLToPath(import.meta.url));
+config();
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
@@ -52,9 +45,9 @@ export default defineConfig({
 		noExternal: ['node-html-parser', 'ts-utils', 'colors']
 	},
 	server: {
-		port: env.PORT,
+		port: Number(process.env.PORT),
 		host: '0.0.0.0',
-		allowedHosts: env.ALLOWED_HOSTS,
+		allowedHosts: String(process.env.ALLOWED_HOSTS).split(','),
 		watch: {
 			ignored: [
 				'**/node_modules/**',
@@ -68,23 +61,6 @@ export default defineConfig({
 				'**/.svelte-kit/**'
 			]
 		}
-	},
-	define: {
-		__APP_ENV__: JSON.stringify({
-			environment: env.ENVIRONMENT,
-			name: env.APP_NAME,
-			indexed_db: {
-				enabled: env.INDEXED_DB_ENABLED,
-				debug: env.INDEXED_DB_DEBUG,
-				name: env.INDEXED_DB_NAME,
-				debounce_interval_ms: env.INDEXED_DB_DEBOUNCE_INTERVAL_MS
-			},
-			struct_cache: env.STRUCT_CACHE_ENABLED,
-			supabase: {
-				url: env.SB_PUBLIC_URL,
-				public_key: env.SB_PUBLIC_KEY,
-				s3_access_key: env.SB_STORAGE_ACCESS_KEY
-			}
-		})
+		//hmr: false,
 	}
 });

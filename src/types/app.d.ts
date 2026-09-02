@@ -13,30 +13,7 @@ declare global {
 			supabase: ReturnType<typeof createServerClient<DB>> & { serviceRole: boolean };
 			session: SupaStructData<'core', 'session'> | null;
 		}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
 	}
-
-	const __APP_ENV__: {
-		environment: 'prod' | 'dev' | 'test' | 'staging';
-		name: string;
-		indexed_db: {
-			enabled: boolean;
-			name: string;
-			version: number;
-			debug: boolean;
-			debounce_interval_ms: number;
-		};
-		struct_cache: {
-			enabled: boolean;
-			debug: boolean;
-		};
-		supabase: {
-			url: string;
-			public_key: string;
-		};
-	};
 }
 
 export {};

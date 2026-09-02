@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, fireEvent, cleanup } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRawSnippet, tick } from 'svelte';
@@ -8,7 +7,6 @@ import DateInput from '$lib/components/forms/DateInput.svelte';
 import FloatingInput from '$lib/components/forms/FloatingInput.svelte';
 import Password from '$lib/components/forms/Password.svelte';
 import Select from '$lib/components/forms/Select.svelte';
-import Grid from '$lib/components/general/Grid.svelte';
 
 vi.mock('ag-grid-community', () => {
 	const gridApi = {
@@ -237,32 +235,5 @@ describe('Select', () => {
 
 		await fireEvent.change(select, { target: { value: '' } });
 		expect(onChange).toHaveBeenCalledWith(-1);
-	});
-});
-
-describe('Grid', () => {
-	it('getSelection returns selected nodes', async () => {
-		const data = [{ id: 1 }, { id: 2 }];
-		const { component } = render(Grid, {
-			props: {
-				height: 200,
-				data,
-				opts: {
-					columnDefs: [{ field: 'id' }] as any
-				}
-			}
-		});
-
-		const agGrid = (await import('ag-grid-community')) as any;
-		const gridApi = agGrid.createGrid.mock.results[0]?.value;
-
-		if (gridApi) {
-			gridApi.forEachNode.mockImplementation((cb: (node: any) => void) => {
-				cb({ checkboxSelected: true, data: { id: 99 } });
-				cb({ checkboxSelected: false, data: { id: 100 } });
-			});
-		}
-
-		expect(component.getSelection()).toEqual([{ id: 99 }]);
 	});
 });

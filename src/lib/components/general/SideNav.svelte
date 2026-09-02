@@ -21,9 +21,10 @@ Side navigation offcanvas that renders sections from the navbar registry.
 
 	interface Props {
 		id: string;
+		name: string;
 	}
 
-	const { id }: Props = $props();
+	const { id, name }: Props = $props();
 
 	const sections = Navbar.getSections();
 
@@ -67,7 +68,7 @@ Side navigation offcanvas that renders sections from the navbar registry.
 	"
 >
 	<div class="offcanvas-header pb-0">
-		<h4 class="offcanvas-title text-muted" id="{id}Label">{__APP_ENV__.name}</h4>
+		<h4 class="offcanvas-title text-muted" id="{id}Label">{name}</h4>
 		<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 	</div>
 	<div class="offcanvas-body pt-0">

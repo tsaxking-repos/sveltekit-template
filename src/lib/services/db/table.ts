@@ -139,6 +139,7 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 	private async rows() {
 		this.log('Fetching all rows from table');
 		const db = await _init();
+		if (!db) return [];
 		this.log('Database initialized:', db);
 		// return this.tableDef().toArray();
 		return db.table(this.config.name).toArray();
@@ -290,7 +291,7 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 			await _init();
 			const fromCache = this.cache.get(id);
 			if (fromCache) return fromCache;
-			const row = await this.tableDef().get(id);
+			const row = await this.tableDef()?.get(id);
 			if (!row) {
 				return undefined;
 			}
@@ -338,7 +339,7 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 				...(data as object),
 				created_at: this.ensureDate(data.created_at, now)
 			} as Row<Name, Schema>;
-			await this.tableDef().add(row);
+			await this.tableDef()?.add(row);
 			return this.Generator(row);
 		});
 	}
@@ -360,7 +361,7 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 						created_at: this.ensureDate(item.created_at, now).toISOString()
 					}) as Row<Name, Schema>
 			);
-			await this.tableDef().bulkAdd(rows);
+			await this.tableDef()?.bulkAdd(rows);
 			return rows.map((row) => this.Generator(row));
 		});
 	}
@@ -373,13 +374,13 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 			this.log('Upserting row with data', data);
 			await _init();
 			const now = new Date();
-			const existing = await this.tableDef().get(data.id);
+			const existing = await this.tableDef()?.get(data.id);
 			const merged = {
 				...(existing ?? {}),
 				...(data as object),
 				created_at: this.ensureDate(data.created_at, existing?.created_at ?? now).toISOString()
 			} as Row<Name, Schema>;
-			await this.tableDef().put(merged);
+			await this.tableDef()?.put(merged);
 			return this.Generator(merged);
 		});
 	}
@@ -394,7 +395,7 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 				if (!item.id || !item.id.length) {
 					throw new Error('All data items must have a valid id for upsert');
 				}
-				const existing = await this.tableDef().get(item.id);
+				const existing = await this.tableDef()?.get(item.id);
 				const merged = {
 					...(existing ?? {}),
 					...(item as object),
@@ -402,18 +403,21 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 				} as Row<Name, Schema>;
 				rows.push(merged);
 			}
-			await this.tableDef().bulkPut(rows);
+			await this.tableDef()?.bulkPut(rows);
 			return rows.map((row) => this.Generator(row));
 		});
 	}
 
 	private remove(id: string) {
-		this.log('Removing row with id', id);
-		this.cache.delete(id);
+		const normalizedId = String(id);
+		this.log('Removing row with id', normalizedId);
+		this.cache.delete(normalizedId);
 
-		// delete from indexdb
-		return _init().then((db) => {
-			db.table(this.config.name).delete(id);
+		// Delete from IndexedDB and await completion so callers can rely on persistence state.
+		return _init().then(async (db) => {
+			if (!db) return;
+			await db.table(this.config.name).delete(normalizedId);
+			await this.tableDef()?.delete(normalizedId);
 		});
 	}
 
@@ -421,17 +425,19 @@ export class DexieTable<Name extends string, Schema extends z.ZodTypeAny> {
 		return attemptAsync(async () => {
 			this.log('Clearing all rows and cache');
 			await _init();
-			await this.tableDef().clear();
+			await this.tableDef()?.clear();
 			this.cache.clear();
 		});
 	}
 
 	delete_by_ids(ids: string[]) {
 		return attemptAsync(async () => {
-			this.log('Deleting rows with ids', ids);
+			const normalizedIds = Array.from(new Set(ids.map((id) => String(id))));
+			this.log('Deleting rows with ids', normalizedIds);
+			if (!normalizedIds.length) return;
 			await _init();
-			await this.tableDef().bulkDelete(ids);
-			for (const id of ids) {
+			await this.tableDef()?.bulkDelete(normalizedIds);
+			for (const id of normalizedIds) {
 				this.cache.delete(id);
 			}
 		});
@@ -541,7 +547,7 @@ export class DexieData<Name extends string, Schema extends z.ZodTypeAny> {
 				...this.raw,
 				...(updates as Partial<Row<Name, Schema>>)
 			} as Row<Name, Schema>;
-			await this.table['tableDef']().put(next);
+			await this.table['tableDef']()?.put(next);
 			Object.assign(this.raw, next);
 			return this;
 		});
@@ -550,7 +556,7 @@ export class DexieData<Name extends string, Schema extends z.ZodTypeAny> {
 	delete() {
 		return attemptAsync(async () => {
 			await _init();
-			await this.table['tableDef']().delete(this.id);
+			await this.table['tableDef']()?.delete(this.id);
 			this.table['remove'](this.id);
 			return true;
 		});

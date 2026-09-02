@@ -38,6 +38,7 @@ Password input with visibility toggle and optional label.
 			| 'dark'
 			| 'link';
 		id?: string;
+		required?: boolean;
 	}
 
 	let {
@@ -49,7 +50,8 @@ Password input with visibility toggle and optional label.
 		floatingLabel,
 		label,
 		buttonColor,
-		id
+		id,
+		required = false
 	}: Props = $props();
 
 	let type: 'text' | 'password' = $state('password');
@@ -79,6 +81,7 @@ Password input with visibility toggle and optional label.
 		oninput={(e) => onInput?.(e.currentTarget.value)}
 		onchange={(e) => onChange?.(e.currentTarget.value)}
 		{id}
+		{required}
 	/>
 {/snippet}
 

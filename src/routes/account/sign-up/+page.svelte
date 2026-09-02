@@ -5,13 +5,10 @@ Sign-up page at `/account/sign-up`.
 <script lang="ts">
 	import '$lib/styles/gsi.css';
 	import { passwordStrength } from 'check-password-strength';
-	// import type { ActionData } from './$types';
 	import Password from '$lib/components/forms/Password.svelte';
-	// import { browser } from '$app/env';
 	import { goto } from '$app/navigation';
-	// import client from '$lib/services/supabase';
 
-	const { form } = $props();
+	const { form, data } = $props();
 
 	$effect(() => {
 		if (form?.redirect) {
@@ -22,24 +19,13 @@ Sign-up page at `/account/sign-up`.
 	let password = $state('');
 	let confirmPassword = $state('');
 	const passwordResult = $derived(passwordStrength(password));
-
-	// const openSignInWithGoogle = async () => {
-	// 	console.log('Opening OAuth2 sign-in');
-	// 	const res = await client.auth.signInWithOAuth({
-	// 		provider: 'google',
-	// 		options: {
-	// 			redirectTo: `${window.location.origin}/account/sign-in`
-	// 		}
-	// 	});
-	// 	console.log(res);
-	// };
 </script>
 
 <main>
 	<div class="container layer-1 mt-5 py-5">
 		<div class="row">
 			<h1>
-				{__APP_ENV__.name}: Sign Up
+				{data.env.name}: Sign Up
 			</h1>
 		</div>
 		<div class="row mb-3 pb-3">
@@ -60,6 +46,7 @@ Sign-up page at `/account/sign-up`.
 									class="form-control"
 									placeholder="Username"
 									type="text"
+									required={true}
 								/>
 								<label class="form-label" for="username"> Username </label>
 							</div>
@@ -72,6 +59,7 @@ Sign-up page at `/account/sign-up`.
 									class="form-control"
 									placeholder="Email"
 									type="email"
+									required={true}
 								/>
 								<label class="form-label" for="email"> Email </label>
 							</div>
@@ -86,6 +74,7 @@ Sign-up page at `/account/sign-up`.
 									class="form-control"
 									placeholder="First Name"
 									type="text"
+									required={true}
 								/>
 								<label class="form-label" for="firstName"> First Name </label>
 							</div>
@@ -98,6 +87,7 @@ Sign-up page at `/account/sign-up`.
 									class="form-control"
 									placeholder="Last Name"
 									type="text"
+									required={true}
 								/>
 								<label class="form-label" for="lastName"> Last Name </label>
 							</div>
@@ -113,6 +103,7 @@ Sign-up page at `/account/sign-up`.
 								label="Password"
 								buttonColor="primary"
 								id="password"
+								required={true}
 							/>
 						</div>
 						<div class="col-md-6">
@@ -124,6 +115,7 @@ Sign-up page at `/account/sign-up`.
 								label="Confirm Password"
 								buttonColor="primary"
 								id="confirmPassword"
+								required={true}
 							/>
 						</div>
 					</div>

@@ -7,7 +7,6 @@ Sign-in page at `/account/sign-in`.
 	import Password from '$lib/components/forms/Password.svelte';
 	import { Form } from '$lib/utils/form.svelte.js';
 	import { goto } from '$app/navigation';
-	import supabase from '$lib/services/supabase/index.js';
 	import { alert } from '$lib/utils/prompts.svelte.js';
 
 	const { form, data } = $props();
@@ -46,7 +45,7 @@ Sign-in page at `/account/sign-in`.
 					return console.error(val.error);
 				}
 
-				const { error } = await supabase.auth.resetPasswordForEmail(val.value.value.user, {
+				const { error } = await data.supabase.auth.resetPasswordForEmail(val.value.value.user, {
 					redirectTo: `${window.location.origin}/account/recover`
 				});
 
@@ -64,7 +63,7 @@ Sign-in page at `/account/sign-in`.
 	<div class="container layer-1 py-5 mt-5">
 		<div class="row">
 			<h1>
-				{__APP_ENV__.name}: Sign In
+				{data.env.name}: Sign In
 			</h1>
 		</div>
 		<div class="row mb-3">

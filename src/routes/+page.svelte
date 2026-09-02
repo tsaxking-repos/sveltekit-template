@@ -8,10 +8,12 @@ Uses the page title from the global `__APP_ENV__` config to keep branding consis
 <script lang="ts">
 	import Card from '$lib/components/bootstrap/Card.svelte';
 	import '$lib/index';
+
+	const { data } = $props();
 </script>
 
 <svelte:head>
-	<title>{__APP_ENV__.name}</title>
+	<title>{data.env.name}</title>
 </svelte:head>
 
 <div class="container mt-5">

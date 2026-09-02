@@ -1,16 +1,20 @@
 /**
  * @fileoverview Root layout module setup for all routes.
  */
-import { isBrowser, createServerClient } from '@supabase/ssr';
-import browserClient from '$lib/services/supabase';
+import { isBrowser, createServerClient, createBrowserClient } from '@supabase/ssr';
 import { SupaStruct } from '$lib/services/supabase/supastruct.svelte';
 
 export const load = async (event) => {
 	event.depends('supabase:auth');
 	const supabase = isBrowser()
-		? browserClient
+		? Object.assign(
+				createBrowserClient(event.data.env.supabase.url, event.data.env.supabase.public_key),
+				{
+					serviceRole: false
+				}
+			)
 		: Object.assign(
-				createServerClient(__APP_ENV__.supabase.url, __APP_ENV__.supabase.public_key, {
+				createServerClient(event.data.env.supabase.url, event.data.env.supabase.public_key, {
 					global: {
 						fetch: event.fetch
 					},
@@ -48,6 +52,7 @@ export const load = async (event) => {
 	});
 
 	notifications.sync(1000 * 60);
+	notifications.subscribe();
 
 	return {
 		supabase,
@@ -56,6 +61,7 @@ export const load = async (event) => {
 		is_student: event.data.is_student,
 		is_viewer: event.data.is_viewer,
 		profile: event.data.profile ? Profile.Generator(event.data.profile) : null,
-		notifications
+		notifications,
+		env: event.data.env
 	};
 };

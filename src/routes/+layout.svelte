@@ -21,7 +21,7 @@ Root layout wrapper for all routes. Acts as middleware for global bootstrapping.
 				invalidate('supabase:auth');
 			}
 		});
-		Object.assign(window, { supabase: data.supabase, SupaStruct });
+		Object.assign(window, { supabase: data.supabase, SupaStruct, __APP_ENV__: data.env });
 		const off_network_listener = setup_network_listener(data.supabase);
 		return () => {
 			unsub_notifications();
@@ -33,7 +33,7 @@ Root layout wrapper for all routes. Acts as middleware for global bootstrapping.
 
 <main>
 	<Navbar
-		title={__APP_ENV__.name}
+		title={data.env.name}
 		notifications={data.notifications.reactive}
 		account={data.profile}
 	/>

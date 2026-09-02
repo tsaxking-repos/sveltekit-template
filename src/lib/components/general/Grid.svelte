@@ -63,10 +63,6 @@ See AG Grid docs: https://www.ag-grid.com/javascript-data-grid/getting-started/
 		type ICellRendererParams
 	} from 'ag-grid-community';
 	import { EventEmitter } from 'ts-utils';
-	import {
-		CheckBoxSelectRenderer,
-		HeaderCheckboxRenderer
-	} from '$lib/utils/ag-grid/checkbox-select';
 
 	interface Props {
 		opts: Omit<GridOptions<T>, 'rowData'>;
@@ -80,7 +76,6 @@ See AG Grid docs: https://www.ag-grid.com/javascript-data-grid/getting-started/
 		layer?: number;
 		height: string | number;
 		modules?: Module[];
-		multiSelect?: boolean;
 		debug?: boolean;
 		redraw_on_update?: boolean;
 	}
@@ -93,10 +88,10 @@ See AG Grid docs: https://www.ag-grid.com/javascript-data-grid/getting-started/
 		layer = 1,
 		height,
 		modules = [],
-		multiSelect = false,
 		debug,
 		redraw_on_update
 	}: Props = $props();
+	// $inspect('data', data);
 
 	$effect(() =>
 		ModuleRegistry.registerModules([
@@ -147,11 +142,10 @@ See AG Grid docs: https://www.ag-grid.com/javascript-data-grid/getting-started/
 		if (!grid) return [];
 		const selected: T[] = [];
 
-		grid.forEachNode((node) => {
-			if ((node as any).checkboxSelected) {
-				if (node.data) selected.push(node.data);
-			}
-		});
+		const selectedNodes = grid.getSelectedRows();
+		for (const row of selectedNodes) {
+			if (row) selected.push(row);
+		}
 
 		return selected;
 	};
@@ -178,6 +172,27 @@ See AG Grid docs: https://www.ag-grid.com/javascript-data-grid/getting-started/
 
 	let gridDiv: HTMLDivElement;
 	let grid: GridApi<T>;
+	const transientRowKeys = new WeakMap<object, string>();
+	let transientRowKeySeed = 0;
+
+	const getRowKey = (row: T, index?: number) => {
+		const candidate = row as T & { id?: string | number; raw?: { id?: string | number } };
+		const explicitId = candidate.id ?? candidate.raw?.id;
+		if (explicitId !== undefined && explicitId !== null && explicitId !== '') {
+			return String(explicitId);
+		}
+
+		if (typeof row === 'object' && row !== null) {
+			const existing = transientRowKeys.get(row as object);
+			if (existing) return existing;
+
+			const created = `__grid_row_${index ?? transientRowKeySeed++}`;
+			transientRowKeys.set(row as object, created);
+			return created;
+		}
+
+		return `__grid_primitive_${String(row)}_${index ?? transientRowKeySeed++}`;
+	};
 
 	const gridOptions: GridOptions<T> = $derived({
 		theme: gridTheme,
@@ -219,26 +234,12 @@ See AG Grid docs: https://www.ag-grid.com/javascript-data-grid/getting-started/
 						}
 					]
 				: []),
-			...(multiSelect
-				? [
-						{
-							width: 50,
-							cellRenderer: CheckBoxSelectRenderer,
-							headerComponent: HeaderCheckboxRenderer
-						}
-					]
-				: []),
 			...(opts.columnDefs || [])
 		],
 		getRowClass: (params) => {
 			return (params.node as any).checkboxSelected ? 'row-checked' : '';
 		}
 	});
-
-	const getRowKey = (row: T, index?: number) => {
-		const candidate = row as T & { id?: string | number; raw?: { id?: string | number } };
-		return String(candidate.id ?? candidate.raw?.id ?? index ?? '');
-	};
 
 	const redrawNode = (index: number) => {
 		if (!grid) return;

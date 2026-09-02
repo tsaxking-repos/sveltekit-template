@@ -18,7 +18,14 @@ import { z } from 'zod';
 /**
  * Dexie database instance.
  */
-export const DB = new Dexie(__APP_ENV__.indexed_db.name);
+// export const DB = new Dexie(__APP_ENV__.indexed_db.name);
+
+const DEXIE_CONFIG = {
+	enabled: browser,
+	name: 'indexed_db',
+	version: 1,
+	debug: false
+};
 
 /**
  * Supported schema field types.
@@ -67,7 +74,7 @@ const globals: SchemaDefinition = {
 };
 
 const debug = (...args: unknown[]) => {
-	if (__APP_ENV__.indexed_db.debug && browser && __APP_ENV__.indexed_db.enabled) {
+	if (browser) {
 		console.log('[IndexedDB]', ...args);
 	}
 };
@@ -156,14 +163,19 @@ const parse_schema = (
  * @param {T} schema - Schema definition.
  */
 export const _define = <Schema extends z.ZodTypeAny>(name: string, schema: Schema) => {
+	if (!DEXIE_CONFIG.enabled) return () => null;
+	if (!DB) {
+		DB = new Dexie(DEXIE_CONFIG.name);
+	}
 	debug(`Defining table "${name}" with schema`, schema);
+	const D = DB;
 
 	pendingSchemas[name] = Object.keys({
 		...globals,
 		...parse_schema(schema)
 	}).join(', ');
 	initialized = false;
-	return () => DB.table<z.output<Schema>>(name);
+	return () => D.table<z.output<Schema>>(name);
 };
 
 let timeout: ReturnType<typeof setTimeout>;
@@ -174,17 +186,25 @@ const schemaSignature = () =>
 		.map(([name, schema]) => `${name}:${schema}`)
 		.join('|');
 
+let DB: Dexie | null = null;
+
 /**
  * Initializes the IndexedDB database with registered schemas.
  */
 export const _init = async () => {
+	if (!DEXIE_CONFIG.enabled) return Promise.resolve(null);
 	if (initPromise) {
 		return initPromise;
 	}
 
+	if (!browser) return Promise.resolve(null);
+
 	initPromise = new Promise<typeof DB>((resolve, reject) => {
 		if (timeout) clearTimeout(timeout);
 		timeout = setTimeout(() => {
+			if (DB === null) {
+				DB = new Dexie(DEXIE_CONFIG.name);
+			}
 			if (!browser) reject(new Error('IndexedDB is only available in the browser'));
 
 			const signature = schemaSignature();

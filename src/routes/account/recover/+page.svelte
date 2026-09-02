@@ -56,7 +56,7 @@
 <div class="container layer-1 py-5 mt-5">
 	<div class="row">
 		<h1>
-			{__APP_ENV__.name}: Account Recovery
+			{data.env.name}: Account Recovery
 		</h1>
 	</div>
 	<div class="row mb-3">

@@ -25,6 +25,7 @@ File upload modal backed by Uppy dashboard.
 	import Uppy, { type Body, type Meta, type UppyOptions } from '@uppy/core';
 	import Dashboard from '@uppy/svelte/dashboard';
 	import { EventEmitter } from 'ts-utils';
+	import { type Client } from '$lib/services/supabase/supastruct.svelte';
 
 	import '@uppy/core/css/style.min.css';
 	import '@uppy/dashboard/css/style.min.css';
@@ -32,7 +33,6 @@ File upload modal backed by Uppy dashboard.
 	import Modal from '../bootstrap/Modal.svelte';
 	import type { Icon } from '$lib/types/icons';
 	import I from '../general/Icon.svelte';
-	import supabase from '$lib/services/supabase';
 
 	type UploadResult = {
 		url: string;
@@ -51,6 +51,7 @@ File upload modal backed by Uppy dashboard.
 		path?: string;
 		message?: string;
 		uppyOpts?: UppyOptions<M, B>;
+		supabase: Client;
 
 		btn?: {
 			text?: string;
@@ -60,7 +61,7 @@ File upload modal backed by Uppy dashboard.
 		};
 	}
 
-	const { bucket, path, message = 'Upload File', uppyOpts: opts, btn }: Props = $props();
+	const { bucket, path, message = 'Upload File', uppyOpts: opts, btn, supabase }: Props = $props();
 
 	let modal: Modal;
 

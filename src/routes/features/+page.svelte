@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	nav();
 
+	const { data } = $props();
 	let features: Feature[] = $state([]);
 
 	onMount(() => {
@@ -18,8 +19,8 @@
 		<div class="col">
 			<h1>Features</h1>
 			<small class="text-muted">
-				View all features available in {__APP_ENV__.name} and their documentation. Click on a feature
-				to view more details about it!
+				View all features available in {data.env.name} and their documentation. Click on a feature to
+				view more details about it!
 			</small>
 		</div>
 	</div>

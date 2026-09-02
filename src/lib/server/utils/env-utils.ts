@@ -120,6 +120,8 @@ export function get<T = string>(key: string, config?: EnvConfig<T>): T | undefin
 export function get<T = string>(key: string, config?: EnvConfig<T>): T | undefined {
 	if (cache.has(key)) return cache.get(key) as T;
 	key = key.toUpperCase();
+	const skipValidation = process.env.SKIP_ENV_VALIDATION === '1';
+	const parse = (val: string) => (config?.parser ? config.parser(val) : (val as unknown as T));
 	const gen = (data: T) => {
 		cache.set(key, data);
 		if (process.env.ENVIRONMENT === 'prod') return; // Don't change git-tracked files in production
@@ -141,11 +143,27 @@ export function get<T = string>(key: string, config?: EnvConfig<T>): T | undefin
 		);
 	}
 
-	if (config?.required && !raw) {
+	if (config?.required && !raw && !skipValidation) {
 		throw new EnvironmentError(`Missing required env var "${key}"`);
 	}
 
-	const parse = (val: string) => (config?.parser ? config.parser(val) : (val as unknown as T));
+	if (config?.required && !raw && skipValidation) {
+		const fallbackRaw = (() => {
+			if (config.values?.length) return config.values[0];
+			if (config.type === 'URL') return 'http://localhost';
+			if (config.type === 'email') return 'build@example.com';
+			if (config.type === 'number') return '0';
+			if (config.type === 'number[]') return '0';
+			if (config.type === 'y/n, true/false, 1/0') return 'false';
+			if (config.type === 'string[]') return 'build';
+			return 'build';
+		})();
+
+		const fallback = parse(fallbackRaw);
+		gen(fallback);
+		return fallback;
+	}
+
 	if (raw) {
 		if (config?.values && !config.values.includes(raw)) {
 			throw new EnvironmentError(
